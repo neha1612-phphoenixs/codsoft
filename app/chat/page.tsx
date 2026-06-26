@@ -33,6 +33,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import Link from 'next/link';
 import VoiceAssistant from '@/components/voice-assistant';
+import { aiService } from '@/lib/ai-service';
 
 // Mock Data
 const MODELS = [
@@ -58,24 +59,45 @@ export default function ChatPage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = async () => {
+    const userPrompt = input.trim();
+    if (!userPrompt) return;
     
-    const newUserMsg = { role: 'user', content: input, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-    setMessages([...messages, newUserMsg]);
+    const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const newUserMsg = { role: 'user', content: userPrompt, time: timeString };
+    
+    // Maintain local conversation history
+    const updatedMessages = [...messages, newUserMsg];
+    setMessages(updatedMessages);
     setInput('');
     setLoading(true);
 
-    // Mock AI Response
-    setTimeout(() => {
+    try {
+      // Map to ChatMessage format expected by service
+      const serviceMessages = updatedMessages.map(m => ({
+        role: m.role as 'user' | 'assistant' | 'system',
+        content: m.content
+      }));
+      
+      const response = await aiService.chat(serviceMessages, selectedModel.id);
+      
       const aiResponse = { 
         role: 'assistant', 
-        content: `I am processing your request using **${selectedModel.name}**. \n\nHere is a quick breakdown:\n1. Your request: "${input}"\n2. Status: Successfully processed.\n\n\`\`\`javascript\nconst hello = "World";\nconsole.log(\`NehPal AI at your service: \${hello}\`);\n\`\`\``,
+        content: response.content,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
       };
       setMessages((prev) => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Error generating AI response:', error);
+      const errorResponse = {
+        role: 'assistant',
+        content: 'I encountered an error processing your request. Please try again.',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages((prev) => [...prev, errorResponse]);
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
