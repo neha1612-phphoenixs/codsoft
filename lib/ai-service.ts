@@ -41,6 +41,24 @@ export class AIService {
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     const lastMessage = messages[messages.length - 1].content;
+    const query = lastMessage.toLowerCase().trim();
+
+    // Custom Query Handlers
+    if (query.includes('what is ai') || query === 'ai' || query.includes('what is artificial intelligence')) {
+      return {
+        content: `### What is Artificial Intelligence (AI)?\n\n**Artificial Intelligence (AI)** is a branch of computer science dedicated to building systems capable of performing tasks that would typically require human intelligence. These tasks include:\n\n* 🧠 **Learning & Reasoning**: Recognizing patterns, generalizing from experiences, and making decisions based on data.\n* 🗣️ **Natural Language Processing (NLP)**: Understanding and responding to human speech and text (exactly like I am doing right now!).\n* 👁️ **Computer Vision**: Perceiving and analyzing visual information from the world (e.g., facial recognition, self-driving cars).\n* 🛠️ **Problem Solving**: Solving complex mathematical, scientific, and logical challenges efficiently.\n\n#### How It Works\nModern AI is primarily powered by **Machine Learning (ML)** and **Deep Learning (Neural Networks)**. Instead of being explicitly programmed with rigid rules, AI systems are trained on massive datasets to learn the underlying rules and patterns themselves.`,
+        model: modelId,
+        usage: { prompt_tokens: 15, completion_tokens: 180, total_tokens: 195 }
+      };
+    }
+
+    if (query.includes('weather') || query.includes('what is the weather')) {
+      return {
+        content: `### 🌤️ Current Weather Forecast\n\nHere is the current weather update for your location:\n\n* 📍 **Location**: Delhi, India (Default)\n* 🌡️ **Temperature**: **32°C** (Feels like 35°C)\n* 💧 **Humidity**: **62%**\n* 🌬️ **Wind**: **12 km/h** North-East\n* 📋 **Conditions**: **Partly Cloudy** with a gentle breeze. \n\n*💡 **Tip**: It's a great day for outdoor activities, but keep an umbrella handy just in case of light local showers!*`,
+        model: modelId,
+        usage: { prompt_tokens: 12, completion_tokens: 110, total_tokens: 122 }
+      };
+    }
     
     // Simulate different provider logic
     if (modelId.includes('gpt')) {
